@@ -1,0 +1,10 @@
+; DEPTH OF FIELD — blur the background, keep the subject sharp through a soft radial mask.
+; Bottom: a blurred copy. Top: the sharp original, masked to a feathered circle over the subject.
+(image (1500 1000) :bg #000000 :out "out/demo-dof.png"
+  (sources (pic "assets/photos/p1025.jpg"))
+  (canvas
+    (stack
+      (-> (raster pic) (blur :radius 16))
+      (masked (raster pic) (radial (760 540) 360 #ffffff #00000000))
+      (roundrect 36 34 372 60 10 :fill #000000aa)
+      (text "DEPTH OF FIELD" :size 36 :fill #ffffff :x 56 :y 75))))

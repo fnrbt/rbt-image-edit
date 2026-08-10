@@ -1,0 +1,19 @@
+; Template / data-driven showcase — one "badge" template instantiated 3× with different
+; label + accent, each positioned with `place`. Editing the template once restyles all three.
+; Demonstrates: templates ($param substitution), inst-by-name, place, gradient, roundrect, text.
+(image (1200 1500) :bg #11142a :out "out/poster.png"
+
+  ; a chip = rounded rectangle in the accent colour with a dark label
+  (template badge (label (accent #ffcc33))
+    (stack
+      (roundrect 0 0 380 120 26 :fill $accent)
+      (text $label :size 56 :fill #11142a :x 38 :y 78)))
+
+  (canvas
+    (stack
+      (gradient #1b2350 #0a0c1e)
+      (text "POSTER" :size 150 :fill #ffffff :x 110 :y 200)
+      (place :x 120 :y 320 (badge :label "ONE"   :accent #ff6680))
+      (place :x 120 :y 500 (badge :label "TWO"   :accent #5fd0ff))
+      (place :x 120 :y 680 (badge :label "THREE" :accent #8aff9e))
+      (text "templates · one edit restyles all" :size 36 :fill #9aa3c0 :x 122 :y 980))))

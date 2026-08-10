@@ -1,0 +1,27 @@
+; Compositing showcase — layer stack, blend modes, a masked layer, vector shapes, and text.
+; Demonstrates: stack (the z-ordered spine), an adjustment pipe, blend (screen/multiply),
+; mask (a radial-gradient layer modulating alpha), a vector rect, and text layers.
+(image (1600 1000) :bg #0a0e18 :out "out/compose.png"
+
+  (sources
+    (photo "assets/photo.png")
+    (scene "assets/scene.png"))
+
+  (canvas
+    (stack
+      ; background photo, darkened + desaturated (non-destructive adjust pipe)
+      (-> (raster photo) (brightness :amount 0.8) (saturate :amount 0.8))
+
+      ; a saturated copy of the second image, screen-blended through a circular reveal mask
+      (group "subject" :opacity 0.95
+        (screen
+          (mask (-> (raster scene) (saturate :amount 1.4))
+                (radial (800 460) #ffffff #000000))))
+
+      ; a dark gradient scrim rising from the bottom (multiply)
+      (blend multiply (linear (0 1000) (0 420) #0a0e18 #00000000))
+
+      ; vector accent bar + title block
+      (rect 0 854 1600 8 :fill #ffcc33)
+      (text "COMPOSITE" :size 150 :fill #ffffff :x 90 :y 820)
+      (text "stack · blend · mask · vector · text" :size 40 :fill #ffcc33 :x 96 :y 920))))

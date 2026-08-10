@@ -1,0 +1,15 @@
+; BLACK & WHITE / DUOTONE — split of the original colour vs a purple→cream duotone (gradient map).
+(image (1500 1000) :bg #000000 :out "out/demo-bw.png"
+  (sources (pic "assets/photos/p1062.jpg"))
+  (canvas
+    (stack
+      (raster pic)
+      (crop (750 0 750 1000)
+        (-> (raster pic)
+            (duotone :shadow #241a3a :highlight #ffe8c8)
+            (contrast :amount 1.05)))
+      (rect 748 0 4 1000 :fill #ffffff)
+      (roundrect 36 34 168 60 10 :fill #000000aa)
+      (text "COLOR" :size 38 :fill #ffffff :x 56 :y 76)
+      (roundrect 800 34 224 60 10 :fill #000000aa)
+      (text "DUOTONE" :size 38 :fill #ffffff :x 822 :y 76))))

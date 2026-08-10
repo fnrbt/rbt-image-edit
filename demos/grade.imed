@@ -1,0 +1,18 @@
+; COLOR GRADING — the most common edit: "make it pop". Split before/after of a landscape.
+; AFTER = contrast S-curve + saturation + warm white-balance + contrast, clipped to the right half.
+(image (1500 1000) :bg #000000 :out "out/demo-grade.png"
+  (sources (pic "assets/photos/p1043.jpg"))
+  (canvas
+    (stack
+      (raster pic)
+      (crop (750 0 750 1000)
+        (-> (raster pic)
+            (curves :points (0 0 56 34 200 226 255 255))
+            (saturate :amount 1.4)
+            (temperature :amount 0.22)
+            (contrast :amount 1.12)))
+      (rect 748 0 4 1000 :fill #ffffff)
+      (roundrect 36 34 196 60 10 :fill #000000aa)
+      (text "BEFORE" :size 38 :fill #ffffff :x 56 :y 76)
+      (roundrect 800 34 168 60 10 :fill #000000aa)
+      (text "AFTER" :size 38 :fill #ffffff :x 822 :y 76))))

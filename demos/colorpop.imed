@@ -1,0 +1,10 @@
+; SELECTIVE COLOUR ("colour pop") — desaturate everything, then mask the original colour back
+; into a region. Bottom: grayscale base. Top: the colour original, masked to a feathered circle.
+(image (1500 1000) :bg #000000 :out "out/demo-colorpop.png"
+  (sources (pic "assets/photos/p1080.jpg"))
+  (canvas
+    (stack
+      (-> (raster pic) (grayscale) (brightness :amount 0.92))
+      (masked (raster pic) (radial (750 500) 430 #ffffff #00000000))
+      (roundrect 36 34 332 60 10 :fill #000000aa)
+      (text "SELECTIVE COLOR" :size 34 :fill #ffffff :x 56 :y 75))))

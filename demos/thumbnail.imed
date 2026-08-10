@@ -1,0 +1,13 @@
+; POSTER / THUMBNAIL DESIGN — a real-world layout: graded photo, a dark gradient scrim for text
+; legibility, a bold title, an accent badge, and a footer bar. Pure compositing over a photo.
+(image (1500 1000) :bg #0a0e18 :out "out/demo-thumbnail.png"
+  (sources (pic "assets/photos/p1043.jpg"))
+  (canvas
+    (stack
+      (-> (raster pic) (saturate :amount 1.2) (contrast :amount 1.08))
+      (blend multiply (linear (0 1000) (0 360) #05070e #00000000))
+      (roundrect 60 70 256 78 14 :fill #ff3b30)
+      (text "TRAVEL" :size 44 :fill #ffffff :x 86 :y 124)
+      (text "INTO THE WILD" :size 132 :fill #ffffff :x 64 :y 840)
+      (text "national parks  ·  field journal  ·  2026" :size 38 :fill #ffd84d :x 70 :y 906)
+      (rect 0 980 1500 20 :fill #ffcc33))))

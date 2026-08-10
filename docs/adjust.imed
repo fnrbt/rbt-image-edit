@@ -1,0 +1,25 @@
+; Non-destructive adjustment showcase — adjustment PIPES and adjustment LAYERS, on a smooth
+; gradient so the tone ops are clearly visible. Demonstrates Filter.Custom passes (curves, levels,
+; posterize) that live in image_edit, plus adjustment-layers-over-the-backdrop via the renderer's
+; BackdropFilter with region scoping.
+(image (1600 1000) :bg #000000 :out "out/adjust.png"
+
+  (sources (ramp "assets/ramp.png"))
+
+  (canvas
+    (stack
+      ; the gradient with a non-destructive pipe: contrast S-curve + saturate
+      (-> (raster ramp)
+          (curves :points (0 0 64 28 192 228 255 255))
+          (saturate :amount 1.2))
+
+      ; adjustment LAYER: a strong levels/gamma tweak applied to everything beneath — LEFT HALF only
+      ; (a hard vertical seam at x=800 shows the backdrop adjustment is region-scoped)
+      (adjust-below levels :black 40 :white 220 :gamma 0.6 :region (rect 0 0 800 1000))
+
+      ; adjustment LAYER: posterize a horizontal band → visible tone banding on the smooth ramp
+      (adjust-below posterize :levels 6 :region (rect 0 470 1600 130))
+
+      (text "NON-DESTRUCTIVE" :size 92 :fill #ffffff :x 90 :y 130)
+      (text "left half: levels+gamma   band: posterize   whole: curves + saturate"
+            :size 32 :fill #ffffff :x 92 :y 940))))

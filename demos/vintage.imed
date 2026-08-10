@@ -1,0 +1,15 @@
+; VINTAGE / FILM LOOK — a stacked recipe: faded curves (lifted blacks), warm white-balance,
+; reduced saturation, soft contrast, a vignette, and monochrome grain.
+(image (1500 1000) :bg #000000 :out "out/demo-vintage.png"
+  (sources (pic "assets/photos/p1015.jpg"))
+  (canvas
+    (stack
+      (-> (raster pic)
+          (curves :points (0 26 128 120 255 230))
+          (temperature :amount 0.30)
+          (saturate :amount 0.82)
+          (contrast :amount 0.96)
+          (vignette :amount 0.55 :radius 0.45)
+          (grain :amount 0.32))
+      (roundrect 36 34 304 60 10 :fill #000000aa)
+      (text "VINTAGE FILM" :size 36 :fill #ffffff :x 56 :y 75))))

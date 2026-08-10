@@ -1,0 +1,12 @@
+; SHARPEN — unsharp split before/after. The right half runs the unsharp pass; look at the fur/eyes.
+(image (1500 1000) :bg #000000 :out "out/demo-sharpen.png"
+  (sources (pic "assets/photos/p237.jpg"))
+  (canvas
+    (stack
+      (raster pic)
+      (crop (750 0 750 1000) (-> (raster pic) (sharpen :amount 1.2)))
+      (rect 748 0 4 1000 :fill #ffffff)
+      (roundrect 36 34 196 60 10 :fill #000000aa)
+      (text "BEFORE" :size 38 :fill #ffffff :x 56 :y 76)
+      (roundrect 800 34 232 60 10 :fill #000000aa)
+      (text "SHARPEN" :size 38 :fill #ffffff :x 822 :y 76))))
