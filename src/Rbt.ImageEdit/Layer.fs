@@ -1,6 +1,6 @@
-namespace ImageEdit
+namespace Rbt.ImageEdit
 
-open Renderer
+open Rbt.Renderer
 
 /// The layer algebra. Structural combinators are a closed DU; adjustments are OPEN — referenced by
 /// serializable name+params (`AdjustRef`) and lowered to renderer filters at eval time. `eval`

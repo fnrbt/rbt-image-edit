@@ -1,9 +1,9 @@
-namespace ImageEdit
+namespace Rbt.ImageEdit
 
 open System
 open System.IO
 open System.Diagnostics
-open Renderer
+open Rbt.Renderer
 
 /// Decoded raster sources. Decoding shells out to the ffmpeg/ffprobe CLI (symmetric with PNG
 /// export) and premultiplies alpha so pixels are ready for the renderer's premultiplied

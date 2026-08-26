@@ -11,7 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../../wisp/Wisp.fsproj" />
-    <ProjectReference Include="../ImageEdit/ImageEdit.fsproj" />
-    <ProjectReference Include="../../../renderer/Renderer.fsproj" />
+    <ProjectReference Include="../Rbt.ImageEdit/Rbt.ImageEdit.fsproj" />
+    <ProjectReference Include="../../../rbt-renderer/Rbt.Renderer.fsproj" />
   </ItemGroup>
 </Project>

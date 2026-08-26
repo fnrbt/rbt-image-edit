@@ -1,6 +1,6 @@
-module ImageEdit.App.History
+module Rbt.ImageEdit.App.History
 
-open ImageEdit
+open Rbt.ImageEdit
 
 /// One immutable document version in the time-travel tree.
 type Snapshot = { Id: int; Parent: int option; Doc: Layer; Label: string }

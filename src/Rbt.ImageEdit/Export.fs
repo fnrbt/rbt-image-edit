@@ -1,9 +1,9 @@
-namespace ImageEdit
+namespace Rbt.ImageEdit
 
 open System
 open System.IO
 open System.Diagnostics
-open Renderer
+open Rbt.Renderer
 
 /// Headless rendering of a layer tree to a framebuffer, and writing a framebuffer to PNG via the
 /// ffmpeg CLI (the pattern the video editor uses for headless --shot frames). Uses the software
@@ -24,7 +24,7 @@ module Export =
     let renderCanvas (cfg: Sexp.ImageConfig) (root: Layer) : Framebuffer =
         let frame = { W = float cfg.W; H = float cfg.H }
         let backend = Raster.create ()
-        Renderer.Scene.render backend cfg.W cfg.H (Clear cfg.Bg :: eval frame root)
+        Rbt.Renderer.Scene.render backend cfg.W cfg.H (Clear cfg.Bg :: eval frame root)
 
     /// Write a framebuffer to a PNG (or any ffmpeg-supported still). Un-premultiplies alpha so the
     /// file stores straight colour (correct for semi-transparent / transparent pixels).

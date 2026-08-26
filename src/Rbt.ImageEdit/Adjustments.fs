@@ -1,6 +1,6 @@
-namespace ImageEdit
+namespace Rbt.ImageEdit
 
-open Renderer
+open Rbt.Renderer
 
 /// The library of non-destructive adjustments / filters. `lower` maps a serializable `AdjustRef`
 /// (name + params, straight from the document) to a renderer `Filter`. Simple colour/tone ops reuse

@@ -1,10 +1,10 @@
-module ImageEdit.App.Doc
+module Rbt.ImageEdit.App.Doc
 
 // Structural edits over the immutable `Layer` document, and a flattened view of the top-level
 // layer stack for the Layers panel. Every edit returns a NEW doc (no mutation).
 
-open Renderer
-open ImageEdit
+open Rbt.Renderer
+open Rbt.ImageEdit
 
 /// A row in the Layers panel — derived from a top-level `Folder` in the root `Stack`.
 type LayerInfo = { Index: int; Name: string; Visible: bool; Opacity: float; Blend: string }

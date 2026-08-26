@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../renderer/Renderer.fsproj" />
+    <ProjectReference Include="../../../rbt-renderer/Rbt.Renderer.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core.fs" />

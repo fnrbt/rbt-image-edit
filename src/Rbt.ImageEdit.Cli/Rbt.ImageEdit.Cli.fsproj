@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../ImageEdit/ImageEdit.fsproj" />
+    <ProjectReference Include="../Rbt.ImageEdit/Rbt.ImageEdit.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.fs" />

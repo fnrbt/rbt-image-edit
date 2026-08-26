@@ -1,6 +1,6 @@
-namespace ImageEdit
+namespace Rbt.ImageEdit
 
-open Renderer
+open Rbt.Renderer
 
 /// Shared foundations for the image editor: canvas geometry, the serializable `Param` type, the
 /// effect/template reference records, fit/rect helpers, and a small font cache. Mirrors
@@ -110,20 +110,20 @@ module Core =
             match cache.TryGetValue path with
             | true, f -> f
             | _ -> let f = Text.loadFontFile path in cache.[path] <- f; f
-        /// Load an OpenType font supplied by the embedding application.
-        /// Renderer caches decoded font data by content hash. WOFF2 remains
+        /// Load an Rbt.OpenType font supplied by the embedding application.
+        /// Rbt.Renderer caches decoded font data by content hash. WOFF2 remains
         /// suitable for browser/SVG embedding, but transformed webfont glyphs
-        /// are not yet a reliable Renderer input; use original TTF/OTF bytes.
+        /// are not yet a reliable Rbt.Renderer input; use original TTF/OTF bytes.
         let loadBytes (bytes: byte[]) : Text.FontData =
             if bytes.Length >= 4 && bytes.[0] = byte 'w' && bytes.[1] = byte 'O' && bytes.[2] = byte 'F' && bytes.[3] = byte '2' then
-                invalidArg "bytes" "Renderer requires TTF/OTF font bytes; keep WOFF2 for SVG/browser embedding"
+                invalidArg "bytes" "Rbt.Renderer requires TTF/OTF font bytes; keep WOFF2 for SVG/browser embedding"
             Text.loadFont bytes
         let private firstAvailable kind paths =
             paths
             |> List.tryFind System.IO.File.Exists
             |> Option.map load
             |> Option.defaultWith (fun () ->
-                failwithf "ImageEdit could not find a %s font. Tried: %s" kind (System.String.Join(", ", paths)))
+                failwithf "Rbt.ImageEdit could not find a %s font. Tried: %s" kind (System.String.Join(", ", paths)))
         let sans () =
             firstAvailable "sans-serif" [
                 "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"

@@ -1,11 +1,11 @@
-module ImageEdit.App.Chat
+module Rbt.ImageEdit.App.Chat
 
 // A tiny local "agent": maps a chat instruction to a non-destructive document edit (an adjustment
 // on the base layer). Stands in for a live LLM (which would rewrite the .imed program) so the chat +
 // dual-time-travel flow is demonstrable without an API. Returns (newDoc, assistantReply).
 
-open Renderer
-open ImageEdit
+open Rbt.Renderer
+open Rbt.ImageEdit
 
 let private adj name pars (doc: Layer) = Doc.applyAdjust 0 { Name = name; Params = pmap pars } doc
 

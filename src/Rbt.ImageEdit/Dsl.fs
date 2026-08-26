@@ -1,6 +1,6 @@
-namespace ImageEdit
+namespace Rbt.ImageEdit
 
-open Renderer
+open Rbt.Renderer
 
 /// Thin smart-constructors over the layer algebra, for authoring documents in F# (and for tests).
 /// The S-expression front-end (`Sexp.fs`) is the primary authoring surface; this is the

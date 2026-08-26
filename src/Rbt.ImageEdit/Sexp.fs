@@ -1,9 +1,9 @@
-namespace ImageEdit
+namespace Rbt.ImageEdit
 
 open System
 open System.Text
 open System.Globalization
-open Renderer
+open Rbt.Renderer
 
 /// S-expression front-end: parse an `.imed` document into a `Layer` (+ `ImageConfig`). The layer
 /// AST is an expression tree, so sexp is its native notation. Structure is parens; adjustment names

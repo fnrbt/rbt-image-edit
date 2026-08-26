@@ -1,4 +1,4 @@
-module ImageEdit.Cli.Program
+module Rbt.ImageEdit.Cli.Program
 
 // Headless front-end for the image engine:
 //   imageedit <doc.imed> [--out file.png]   render a document to PNG (default: its :out)
@@ -7,7 +7,7 @@ module ImageEdit.Cli.Program
 
 open System
 open System.IO
-open ImageEdit
+open Rbt.ImageEdit
 
 [<EntryPoint>]
 let main argv =

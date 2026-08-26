@@ -1,10 +1,10 @@
-namespace ImageEdit
+namespace Rbt.ImageEdit
 
 /// A structural diff over the layer AST (mirrors `VideoEdit.Diff`). Names + params + structure diff
 /// into human-readable change lines; opaque leaves (raster pixels, mask shapes) compare by presence
 /// / identity. This is what makes "the LLM rewrites the program, we diff the resulting AST" read
 /// like the edits a person would describe — it is what each assistant chat turn shows.
-/// Deliberately does NOT `open Renderer` (keeps Cmd cases from shadowing layer cases).
+/// Deliberately does NOT `open Rbt.Renderer` (keeps Cmd cases from shadowing layer cases).
 [<AutoOpen>]
 module Diff =
 

@@ -1,17 +1,17 @@
-module ImageEdit.App.Program
+module Rbt.ImageEdit.App.Program
 
 open System
 open System.IO
 open System.Diagnostics
 open System.Collections.Generic
-open Renderer
-open ImageEdit
+open Rbt.Renderer
+open Rbt.ImageEdit
 open Wisp.Reactive
 open Wisp.Layout
 open Wisp.Widgets
 open Wisp.Theme
-open ImageEdit.App
-open ImageEdit.App.History
+open Rbt.ImageEdit.App
+open Rbt.ImageEdit.App.History
 
 // The atrium chrome now lives in the Wisp library (shared with the PDF viewer); `Ui` aliases it so the
 // existing `Ui.*` references resolve unchanged.
@@ -120,7 +120,7 @@ type AppState(cfg: Sexp.ImageConfig, initialDoc: Layer, headless: bool) =
         let w' = max 1 (int (float cfg.W * s))
         let h' = max 1 (int (float cfg.H * s))
         let frame : Frame = { W = float cfg.W; H = float cfg.H }
-        Renderer.Scene.render (Raster.create ()) w' h'
+        Rbt.Renderer.Scene.render (Raster.create ()) w' h'
             (Clear cfg.Bg :: [ Group(Matrix3x2.scale s s, 1.0, eval frame doc) ])
 
     let service = RenderService(renderInto, (fun fb -> currentFb.Value <- Some fb; Scheduler.requestFrame ()))
@@ -335,7 +335,7 @@ let private topBar (s: AppState) : Element =
     heightBox 44.0
         (padXY Ui.pad 0.0
             (rowA MStart CCenter Ui.gap
-                ([ textBold 15.0 Ui.P.text "ImageEdit"
+                ([ textBold 15.0 Ui.P.text "Rbt.ImageEdit"
                    Ui.vdivider ()
                    yield! [ for (t, g) in tools -> Ui.toolBtn g (fun () -> s.CurrentTool.Peek() = t) (fun () -> s.CurrentTool.Value <- t) ]
                    expanded 1 (Ui.blank ())
@@ -692,7 +692,7 @@ let private selfTest (loaded: Layer) : int =
     h.JumpTo 0
     check "time-travel to root restores initial" ((top ()).Visible = v0)
     printfn ""
-    printfn "ImageEdit.App: %d passed, %d failed" ok bad
+    printfn "Rbt.ImageEdit.App: %d passed, %d failed" ok bad
     if bad = 0 then 0 else 1
 
 // Headless GL render (EGL pbuffer, llvmpipe) → PNG, so --shotgl shows the real ShaderFill + frost.
@@ -719,7 +719,7 @@ let private shotGl (w: int) (h: int) (root: unit -> Element) (outPath: string) =
     rootEl.Layout(BoxConstraints.tightWH (float w) (float h))
     flushLayout ()
     let cmds = Clear Color.black :: rootEl.Paint(0.0, 0.0)
-    let fb = Renderer.Scene.render (GlBackend.create ()) w h cmds
+    let fb = Rbt.Renderer.Scene.render (GlBackend.create ()) w h cmds
     writePng fb outPath
 
 [<EntryPoint>]
@@ -753,5 +753,5 @@ let main argv =
             0
         | _ ->
             Wisp.Host.keyHandler.Value <- state.OnKey
-            Wisp.Host.run "ImageEdit" 1400 900 (fun () -> view state)
+            Wisp.Host.run "Rbt.ImageEdit" 1400 900 (fun () -> view state)
             0
