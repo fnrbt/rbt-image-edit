@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../../rbt-renderer/Rbt.Renderer.fsproj" />
+    <PackageReference Include="Rbt.Renderer" Version="0.1.1" />
     <PackageReference Include="Rbt.Sexp" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>
