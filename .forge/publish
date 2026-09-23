@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""Build and publish this repository's NuGet packages to the Forge registry.
+
+Runs inside the Forge publish-action shell as the sole checkout: every Rbt
+dependency is a PackageReference restored from the Forge registry
+(FORGE_PACKAGE_SOURCE) or nuget.org, never a sibling project path. In-repo
+ProjectReferences become package dependencies at the same version.
+
+The coordinator injects FORGE_PACKAGE_SOURCE (registry v3 index URL) and
+FORGE_PACKAGE_API_KEYS (JSON prefix->token map). FORGE_VERSION comes from the
+pushed version tag (refs/tags/vX.Y.Z). Re-publishing an existing immutable
+version returns HTTP 409, treated as a no-op so re-pushing a tag is safe.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import tempfile
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+from pathlib import Path
+
+PREFIX = "Rbt.ImageEdit"
+PROJECTS = [
+    "src/Rbt.ImageEdit/Rbt.ImageEdit.fsproj",
+]
+
+
+def fail(message: str) -> None:
+    raise SystemExit(message)
+
+
+def run(command: list[str], **kwargs) -> None:
+    print("+ " + " ".join(command), flush=True)
+    subprocess.run(command, check=True, **kwargs)
+
+
+def main() -> int:
+    repo = Path(__file__).resolve().parent.parent
+
+    version = os.environ.get("FORGE_VERSION", "").strip()
+    if not version:
+        fail("FORGE_VERSION is required (set by the publish action from the version tag)")
+    source = os.environ.get("FORGE_PACKAGE_SOURCE")
+    if not source:
+        fail("FORGE_PACKAGE_SOURCE is required")
+    try:
+        api_keys = json.loads(os.environ.get("FORGE_PACKAGE_API_KEYS") or "{}")
+    except json.JSONDecodeError as error:
+        fail(f"FORGE_PACKAGE_API_KEYS is not valid JSON: {error}")
+    api_key = api_keys.get(PREFIX)
+    if not api_key:
+        fail(f"FORGE_PACKAGE_API_KEYS has no {PREFIX} publisher token")
+    source_sha = os.environ.get("FORGE_SOURCE_SHA", "")
+
+    # Out-of-tree work directory so the checkout stays clean.
+    workdir = Path(tempfile.mkdtemp(prefix=PREFIX.lower().replace(".", "-") + "-publish-"))
+    nuget_config = workdir / "NuGet.Config"
+    nuget_config.write_text(
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        "<configuration>\n"
+        "  <packageSources>\n"
+        "    <clear />\n"
+        f'    <add key="forge" value="{source}" />\n'
+        '    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />\n'
+        "  </packageSources>\n"
+        "</configuration>\n",
+        encoding="utf-8",
+    )
+
+    output = workdir / "nupkg"
+    for project in PROJECTS:
+        run(
+            [
+                "dotnet", "pack", project,
+                "-c", "Release",
+                "--configfile", str(nuget_config),
+                f"-p:Version={version}",
+                f"-p:PackageVersion={version}",
+                f"-p:RepositoryCommit={source_sha}",
+                "-p:ContinuousIntegrationBuild=true",
+                "-p:IncludeSymbols=false",
+                "-o", str(output),
+            ],
+            cwd=repo,
+        )
+
+    packages = sorted(path for path in output.glob("*.nupkg") if ".symbols." not in path.name)
+    if len(packages) != len(PROJECTS):
+        fail(f"expected {len(PROJECTS)} packages, produced {[path.name for path in packages]}")
+
+    endpoint = publish_endpoint(source)
+    for package in packages:
+        push(package, endpoint, api_key, source_sha)
+    return 0
+
+
+def push(package: Path, endpoint: str, api_key: str, source_sha: str) -> None:
+    boundary = "----ForgePackage" + uuid.uuid4().hex
+    prefix = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="package"; filename="{package.name}"\r\n'
+        "Content-Type: application/octet-stream\r\n\r\n"
+    ).encode()
+    body = prefix + package.read_bytes() + f"\r\n--{boundary}--\r\n".encode()
+    request = urllib.request.Request(
+        endpoint,
+        data=body,
+        method="PUT",
+        headers={
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "X-NuGet-ApiKey": api_key,
+            "X-Forge-Source-Sha": source_sha,
+            "X-Forge-Version-Mode": "explicit",
+        },
+    )
+    print(f"+ publish {package.name} to {endpoint}", flush=True)
+    try:
+        with urllib.request.urlopen(request, timeout=300) as response:
+            if response.status < 200 or response.status >= 300:
+                fail(f"publish returned HTTP {response.status}: {package.name}")
+    except urllib.error.HTTPError as error:
+        if error.code == 409:
+            print(f"{package.name} is already published (409); no-op", flush=True)
+            return
+        detail = error.read(4096).decode("utf-8", errors="replace")
+        fail(f"publish failed with HTTP {error.code}: {package.name}\n{detail}")
+    except (OSError, urllib.error.URLError) as error:
+        fail(f"publish failed: {package.name}: {error}")
+    print(f"published {package.name}", flush=True)
+
+
+def publish_endpoint(source: str) -> str:
+    request = urllib.request.Request(source, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            index = json.load(response)
+    except (OSError, urllib.error.URLError, json.JSONDecodeError) as error:
+        fail(f"could not read NuGet service index {source}: {error}")
+    for resource in index.get("resources", []):
+        resource_types = resource.get("@type", [])
+        if isinstance(resource_types, str):
+            resource_types = [resource_types]
+        if any(str(value).split("/", 1)[0] == "PackagePublish" for value in resource_types):
+            endpoint = str(resource.get("@id") or "").strip()
+            if endpoint:
+                return urllib.parse.urljoin(source, endpoint)
+    fail(f"NuGet service index has no PackagePublish resource: {source}")
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
