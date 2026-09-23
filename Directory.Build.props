@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Published packages declare the FSharp.Core they compiled against as a minimum.
+         Pin it, rather than inheriting the build SDK's, so every consumer (RedBat pins
+         10.1.302) satisfies it; matches the other Rbt packages. -->
+    <FSharpCoreImplicitPackageVersion>10.0.111</FSharpCoreImplicitPackageVersion>
+  </PropertyGroup>
+</Project>
