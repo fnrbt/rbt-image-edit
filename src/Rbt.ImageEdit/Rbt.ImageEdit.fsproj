@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../../rbt-renderer/Rbt.Renderer.fsproj" />
+    <PackageReference Include="Rbt.Sexp" Version="0.1.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core.fs" />

@@ -4,62 +4,16 @@ open System
 open System.Text
 open System.Globalization
 open Rbt.Renderer
+open Rbt.Sexp
 
 /// S-expression front-end: parse an `.imed` document into a `Layer` (+ `ImageConfig`). The layer
 /// AST is an expression tree, so sexp is its native notation. Structure is parens; adjustment names
 /// resolve against `Adjustments.lower`; templates are parameterized subtrees expanded by
-/// substitution ($param); rasters reference a `(sources …)` table. The reader is lifted verbatim
-/// from `VideoEdit.Sexp`.
+/// substitution ($param); rasters reference a `(sources …)` table. Reading is Rbt.Sexp.
 module Sexp =
 
-    // ── reader ──
-    type Sx =
-        | SAtom of string        // symbol / number / #color / :keyword / $var
-        | SStr of string         // "quoted"
-        | SList of Sx list
-
-    let parseAll (input: string) : Sx list =
-        let n = input.Length
-        let mutable i = 0
-        let isDelim c = Char.IsWhiteSpace c || c = '(' || c = ')' || c = '"' || c = ';'
-        let skipWs () =
-            let mutable go = true
-            while go && i < n do
-                if input.[i] = ';' then (while i < n && input.[i] <> '\n' do i <- i + 1)
-                elif Char.IsWhiteSpace input.[i] then i <- i + 1
-                else go <- false
-        let readStr () =
-            i <- i + 1
-            let sb = StringBuilder()
-            while i < n && input.[i] <> '"' do
-                if input.[i] = '\\' && i + 1 < n then (sb.Append input.[i + 1] |> ignore; i <- i + 2)
-                else (sb.Append input.[i] |> ignore; i <- i + 1)
-            i <- i + 1
-            SStr(sb.ToString())
-        let readAtom () =
-            let s = i
-            while i < n && not (isDelim input.[i]) do i <- i + 1
-            SAtom(input.Substring(s, i - s))
-        let rec readExpr () : Sx =
-            skipWs ()
-            if i >= n then failwith "sexp: unexpected EOF"
-            elif input.[i] = '(' then
-                i <- i + 1
-                let items = ResizeArray<Sx>()
-                skipWs ()
-                while i < n && input.[i] <> ')' do
-                    items.Add(readExpr ())
-                    skipWs ()
-                if i >= n then failwith "sexp: unclosed '('"
-                i <- i + 1
-                SList(List.ofSeq items)
-            elif input.[i] = '"' then readStr ()
-            elif input.[i] = ')' then failwith "sexp: unexpected ')'"
-            else readAtom ()
-        let out = ResizeArray<Sx>()
-        skipWs ()
-        while i < n do out.Add(readExpr ()); skipWs ()
-        List.ofSeq out
+    /// Parse every top-level form (Rbt.Sexp reader).
+    let parseAll (input: string) : Sx list = Rbt.Sexp.Sexp.parseAll input
 
     // ── document state ──
     type ImageConfig = { W: int; H: int; Bg: Color; Out: string }
