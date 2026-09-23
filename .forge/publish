@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 import tempfile
 import urllib.error
 import urllib.parse
@@ -35,7 +36,14 @@ def fail(message: str) -> None:
 
 def run(command: list[str], **kwargs) -> None:
     print("+ " + " ".join(command), flush=True)
-    subprocess.run(command, check=True, **kwargs)
+    # dotnet reports build and restore errors on stdout, but a failed action only
+    # records stderr; echo the output tail there so the failure explains itself.
+    completed = subprocess.run(command, capture_output=True, text=True, **kwargs)
+    sys.stdout.write(completed.stdout)
+    sys.stderr.write(completed.stderr)
+    if completed.returncode != 0:
+        tail = "\n".join((completed.stdout + completed.stderr).splitlines()[-60:])
+        fail(f"{command[0]} {command[1]} failed with exit code {completed.returncode}:\n{tail}")
 
 
 def main() -> int:
@@ -56,24 +64,30 @@ def main() -> int:
         fail(f"FORGE_PACKAGE_API_KEYS has no {PREFIX} publisher token")
     source_sha = os.environ.get("FORGE_SOURCE_SHA", "")
 
-    # Rbt dependencies restore through the sandbox's credential-injecting gateway
-    # (declared with packages.read); the publish source is for pushing only.
-    restore_source = os.environ.get("NUGET_REDBAT_SOURCE") or source
-
     # Out-of-tree work directory so the checkout stays clean.
     workdir = Path(tempfile.mkdtemp(prefix=PREFIX.lower().replace(".", "-") + "-publish-"))
-    nuget_config = workdir / "NuGet.Config"
-    nuget_config.write_text(
-        '<?xml version="1.0" encoding="utf-8"?>\n'
-        "<configuration>\n"
-        "  <packageSources>\n"
-        "    <clear />\n"
-        f'    <add key="forge" value="{restore_source}" />\n'
-        '    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />\n'
-        "  </packageSources>\n"
-        "</configuration>\n",
-        encoding="utf-8",
-    )
+
+    # Rbt dependencies restore through the sandbox's credential-injecting gateway
+    # (declared with packages.read). The sandbox writes the canonical NuGet.Config
+    # for it; the gateway is plain HTTP, so any fallback config must allow that.
+    sandbox_config = Path("/workspace/NuGet.Config")
+    if sandbox_config.is_file():
+        nuget_config = sandbox_config
+    else:
+        restore_source = os.environ.get("NUGET_REDBAT_SOURCE") or source
+        insecure = ' allowInsecureConnections="true"' if restore_source.startswith("http://") else ""
+        nuget_config = workdir / "NuGet.Config"
+        nuget_config.write_text(
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            "<configuration>\n"
+            "  <packageSources>\n"
+            "    <clear />\n"
+            f'    <add key="forge" value="{restore_source}"{insecure} />\n'
+            '    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />\n'
+            "  </packageSources>\n"
+            "</configuration>\n",
+            encoding="utf-8",
+        )
 
     # MSBuild creates its own temp directories under TMPDIR; give it one we own so a
     # sandbox TMPDIR that is missing or cleaned mid-run cannot fail the pack.
