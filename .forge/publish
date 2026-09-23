@@ -71,6 +71,12 @@ def main() -> int:
         encoding="utf-8",
     )
 
+    # MSBuild creates its own temp directories under TMPDIR; give it one we own so a
+    # sandbox TMPDIR that is missing or cleaned mid-run cannot fail the pack.
+    build_tmp = workdir / "tmp"
+    build_tmp.mkdir()
+    environment = dict(os.environ, TMPDIR=str(build_tmp), TMP=str(build_tmp), TEMP=str(build_tmp))
+
     output = workdir / "nupkg"
     for project in PROJECTS:
         run(
@@ -86,6 +92,7 @@ def main() -> int:
                 "-o", str(output),
             ],
             cwd=repo,
+            env=environment,
         )
 
     packages = sorted(path for path in output.glob("*.nupkg") if ".symbols." not in path.name)
